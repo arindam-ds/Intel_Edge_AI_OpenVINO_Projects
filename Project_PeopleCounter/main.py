@@ -26,10 +26,7 @@ import time
 import socket
 import json
 import cv2
-
-import logging as log
 import paho.mqtt.client as mqtt
-
 from argparse import ArgumentParser
 from inference import Network
 
@@ -44,7 +41,6 @@ MQTT_KEEPALIVE_INTERVAL = 60
 def build_argparser():
     """
     Parse command line arguments.
-
     :return: command line arguments
     """
     parser = ArgumentParser()
@@ -66,70 +62,129 @@ def build_argparser():
                         help="Probability threshold for detections filtering"
                         "(0.5 by default)")
     return parser
-
-
+    
 def connect_mqtt():
-    ### TODO: Connect to the MQTT client ###
-    client = None
-
+    client = mqtt.Client()
+    client.connect(MQTT_HOST, MQTT_PORT, MQTT_KEEPALIVE_INTERVAL)
     return client
-
 
 def infer_on_stream(args, client):
     """
-    Initialize the inference network, stream video to network,
-    and output stats and video.
-
-    :param args: Command line arguments parsed by `build_argparser()`
-    :param client: MQTT client
+    Load the network and parse the SSD output.
     :return: None
     """
+    # Flag for the input image
+    IMAGE_FLAG = False
+
+    last_ppl_count = 0
+    total_ppl_count = 0
+
     # Initialise the class
     infer_network = Network()
-    # Set Probability threshold for detections
+    
+    # Load the network to IE plugin to get shape of input layer
+    infer_network.load_model(args)
+    net_input_shape = infer_network.get_input_shape()
+
+    # Checks for live feed
+    if args.input == 'CAM':
+        input_stream = 0
+
+    # Checks for input image
+    elif args.input.endswith('.jpg') or args.input.endswith('.bmp') :
+        IMAGE_FLAG = True
+        input_stream = args.input
+
+    # Checks for video file
+    else:
+        input_stream = args.input
+        assert os.path.isfile(args.input), "Specified input file doesn't exist"
+
+    cap = cv2.VideoCapture(input_stream)
+
+    if input_stream:
+        cap.open(args.input)
+
+    if not cap.isOpened():
+        print("ERROR! Unable to open video source")
+    
     prob_threshold = args.prob_threshold
+    initial_w = cap.get(3)
+    initial_h = cap.get(4)
+    while cap.isOpened():
+        flag, frame = cap.read()
+        if not flag:
+            break
+        key_pressed = cv2.waitKey(60)
+        # Start async inference        
+        # Change data layout from HWC to CHW
+        
+        image = cv2.resize(frame, (net_input_shape[3], net_input_shape[2]))
+        image = image.transpose((2, 0, 1))
+        image = image.reshape(1, *image.shape)  
+        
+        # Start asynchronous inference for specified request.
+        inf_start = time.time()
+        tmp_net = infer_network.exec_net(image)
+        # Wait for the result
+        if infer_network.wait(tmp_net) == 0:
+            det_time = time.time() - inf_start
+            # Results of the output layer of the network
+            result = infer_network.get_output()
+            #frame, current_count = ssd_out(frame, result)
+            current_count = 0
+            for obj in result[0][0]:
+                # Draw bounding box for object when it's probability is more than
+                #  the specified threshold
+                if obj[2] > prob_threshold:
+                    xmin = int(obj[3] * initial_w)
+                    ymin = int(obj[4] * initial_h)
+                    xmax = int(obj[5] * initial_w)
+                    ymax = int(obj[6] * initial_h)
+                    cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 55, 255), 1)
+                    current_count = current_count + 1
 
-    ### TODO: Load the model through `infer_network` ###
+    
+            inf_time_message = "Inference time: {:.3f}ms".format(det_time * 1000)
+            cv2.putText(frame, inf_time_message, (15, 15), cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
 
-    ### TODO: Handle the input stream ###
+            # If new person enters the video
+            if current_count > last_ppl_count:
+                start_time = time.time()
+                total_ppl_count = total_ppl_count + current_count - last_ppl_count
+                client.publish("person", json.dumps({"total": total_ppl_count}))
 
-    ### TODO: Loop until stream is over ###
+            # Person duration in the video 
+            if current_count < last_ppl_count:
+                duration = int(time.time() - start_time)
+                # Publish messages to the MQTT server
+                client.publish("person/duration", json.dumps({"duration": duration}))
 
-        ### TODO: Read from the video capture ###
+            client.publish("person", json.dumps({"count": current_count}))
+            last_ppl_count = current_count
 
-        ### TODO: Pre-process the image as needed ###
+            if key_pressed == 27:
+                break
 
-        ### TODO: Start asynchronous inference for specified request ###
+        # Send frame to the ffmpeg server
+        sys.stdout.buffer.write(frame)  
+        sys.stdout.flush()
 
-        ### TODO: Wait for the result ###
-
-            ### TODO: Get the results of the inference request ###
-
-            ### TODO: Extract any desired stats from the results ###
-
-            ### TODO: Calculate and send relevant information on ###
-            ### current_count, total_count and duration to the MQTT server ###
-            ### Topic "person": keys of "count" and "total" ###
-            ### Topic "person/duration": key of "duration" ###
-
-        ### TODO: Send the frame to the FFMPEG server ###
-
-        ### TODO: Write an output image if `single_image_mode` ###
-
+        if IMAGE_FLAG:
+            cv2.imwrite('output_image.jpg', frame)
+    cap.release()
+    cv2.destroyAllWindows()
+    client.disconnect()
+    infer_network.clean()
 
 def main():
-    """
-    Load the network and parse the output.
-
-    :return: None
-    """
     # Grab command line args
     args = build_argparser().parse_args()
     # Connect to the MQTT server
-    client = connect_mqtt()
+    client = connect_mqtt()   
     # Perform inference on the input stream
     infer_on_stream(args, client)
-
-
+    
 if __name__ == '__main__':
     main()
+    exit(0)
