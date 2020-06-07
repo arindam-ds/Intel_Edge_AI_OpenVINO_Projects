@@ -56,31 +56,31 @@ Lighting, model accuracy, and camera focal length/image size have different effe
 
 In investigating potential people counter models, I tried each of the following three models:
 
-- Model 1: ssd_inception_v2_coco_2018_01_28
+- **Model 1: ssd_inception_v2_coco_2018_01_28**
   - This model belongs to Tensoflow’s pretrained model zoo.
   - I converted the model to an Intermediate Representation with the following arguments:
-```
-python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
-```
+  ```
+  python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
+  ```
   - The model performed well but sometimes missing the presence of people in the frame.
   - I tried to improve the model for the app by converting into IR form. And then by changing the probability threshold argument.
   
-- Model 2: ssd_mobilenet_v2_coco_2018_03_29
+- **Model 2: ssd_mobilenet_v2_coco_2018_03_29**
   - This model belongs to Tensoflow’s pretrained model zoo.
   - I converted the model to an Intermediate Representation with the following arguments:
-```
-python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
-```
+  ```
+  python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
+  ```
 
   - The model is better than the first one in terms of size and inference time. It misses the presence of people in the frame for lesser number of times.
   - I tried to improve the model for the app by converting into IR form. And then by changing the probability threshold argument.
 
-- Model 3: ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03
+- **Model 3: ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03**
   - This model belongs to Tensoflow’s pretrained model zoo.
   - I converted the model to an Intermediate Representation with the following arguments:
-```
-python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model ./frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json
-```
+  ```
+  python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model ./frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json
+  ```
   - This model’s performance is the worst among three.
   - This is not up to mark in terms of size and infrence time too.
   - Due to it's size, model loading time and inference time are high. Precision is low. Not suitable for edge application.
