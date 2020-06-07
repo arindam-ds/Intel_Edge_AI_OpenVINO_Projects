@@ -30,13 +30,13 @@ from openvino.inference_engine import IENetwork, IECore
 
 class Network:
     """
-    Load and configure inference plugins for the specified target devices 
+    Load and configure inference cores for the specified target devices 
     and performs synchronous and asynchronous modes for the specified infer requests.
     """
 
     def __init__(self):
         ### TODO: Initialize any class variables desired ###
-        self.plugin = None
+        self.core = None
         self.network = None
         self.input_blob = None
         self.input_shape = None
@@ -46,20 +46,20 @@ class Network:
         
     def load_model(self, args):
         ### TODO: Load the model ###
-        plugin = IECore()
+        core = IECore()
         model_xml = args.model
         model_bin = os.path.splitext(model_xml)[0] + ".bin"
-        net = IENetwork(model=model_xml, weights=model_bin)
+        net = core.read_network(model=model_xml, weights=model_bin)
         
         ### TODO: Check for supported layers ###
-        supported_layers = plugin.query_network(network=net, device_name=args.device)
+        supported_layers = core.query_network(network=net, device_name=args.device)
         
         unsupported_layers = [l for l in net.layers.keys() if l not in supported_layers]
         if len(unsupported_layers) != 0:
-            #plugin.add_extension(args.cpu_extension, args.device)
+            #core.add_extension(args.cpu_extension, args.device)
             print("Following layers are not supported by "
-                          "the plugin for specified device {}:\n {}".
-                          format(self.plugin.device,
+                          "the core for specified device {}:\n {}".
+                          format(self.core.device,
                                  ', '.join(not_supported_layers)))
             print("Please try to specify cpu extensions library path"
                           " in command line parameters using -l "
@@ -68,11 +68,11 @@ class Network:
             
             
         ### TODO: Add any necessary extensions ###
-        ### TODO: Return the loaded inference plugin ###
+        ### TODO: Return the loaded inference core ###
         
-        self.exec_network = plugin.load_network(net, args.device)
+        self.exec_network = core.load_network(net, args.device)
 #         print("IR successfully loaded into Inference Engine.")
-        self.plugin = plugin
+        self.core = core
         self.network = net
         
         self.input_blob = next(iter(net.inputs))#added
