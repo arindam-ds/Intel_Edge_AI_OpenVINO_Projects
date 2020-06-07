@@ -37,11 +37,11 @@ I tried to use the models in a Jupyter Notebook from it’s frozen form and with
 ## Assess Model Use Cases
 
 Some of the potential use cases of the people counter app are:
-i)	Counting total footprint in an event or gathering
-ii)	Counting daily customer visit in a shopping mall
-iii)Counting average amount of time spent by a person at some point of interest/advertisement/display etc.
+1. Counting total footprint in an event or gathering
+2. Counting daily customer visit in a shopping mall
+3. Counting average amount of time spent by a person at some point of interest/advertisement/display etc.
 
-Each of these use cases would be useful because these will directly help business for crucial decision-making and thus can increase their revenue. 
+Each of these use cases would be useful because these will directly help business for optimal queue management, scaling workforce and crucial decision-making to increase their revenue. 
 
 ## Assess Effects on End User Needs
 
