@@ -12,7 +12,27 @@ The potential reason for handling custom layers are to convert models having uns
 
 ## Comparing Model Performance
 
-I tried with different models. I tried to use the model in a Jupyter Notebook from it’s frozen form and without using OpenVino. The model "ssd_mobilenet_v2_coco_2018_03_29" is having size of 201 MB. It consists of frozen model in protobuf format, model.ckpt.data-00000-of-00001, model.ckpt.index, model.ckpt.meta, saved_model etc. After conversion into IR form, we only need the xml and bin files. These are having size of 264 KB and 65 MB. The inference time of the model pre-conversion was 65 ms whereas after conversion it was 30 ms.
+I tried with three different models:
+
+- ssd_inception_v2_coco_2018_01_28
+- ssd_mobilenet_v2_coco_2018_03_29
+- ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03
+
+These are pretrained models available in [Tensorflow Model Zoo](https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md)
+
+The comparison on size is given below:
+
+| |SSD Inception V2 COCO|SSD Mobilenet V2 COCO|SSD Resnet V1|
+|-|-|-|-|
+|Before Conversion (in MB)|100|68|131|
+|After Conversion (in MB)|98|66|330|
+
+I tried to use the models in a Jupyter Notebook from it’s frozen form and without using OpenVino to measure their performance. Then, after conversion into IR form, we only need the xml and bin files. The inference time of the three models are shown below:
+
+| |SSD Inception V2 COCO|SSD Mobilenet V2 COCO|SSD Resnet V1|
+|-|-|-|-|
+|Before Conversion (in ms)|75|78|2040|
+|After Conversion (in ms)|60|58|1200|
 
 ## Assess Model Use Cases
 
@@ -36,10 +56,14 @@ Lighting, model accuracy, and camera focal length/image size have different effe
 
 In investigating potential people counter models, I tried each of the following three models:
 
-- Model 1: person-detection-retail-0013
-  - This is Intel OpenVino pre-trained model. I did not have to convert it into IR form.
-  - The model performed pretty good in predicting the person’s presence in a frame.
-  - I tried to improve the model for the app by changing the probability thresholds while running this.
+- Model 1: ssd_inception_v2_coco_2018_01_28
+  - This model belongs to Tensoflow’s pretrained model zoo.
+  - I converted the model to an Intermediate Representation with the following arguments:
+```
+python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
+```
+  - The model performed well but sometimes missing the presence of people in the frame.
+  - I tried to improve the model for the app by converting into IR form. And then by changing the probability threshold argument.
   
 - Model 2: ssd_mobilenet_v2_coco_2018_03_29
   - This model belongs to Tensoflow’s pretrained model zoo.
@@ -48,13 +72,23 @@ In investigating potential people counter models, I tried each of the following 
 python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
 ```
 
-  - The model performed well but sometimes with lesser precision than the first model.
+  - The model is better than the first one in terms of size and inference time. It misses the presence of people in the frame for lesser number of times.
   - I tried to improve the model for the app by converting into IR form. And then by changing the probability threshold argument.
 
-- Model 3: faster_rcnn_inception_v2_coco_2018_01_28
+- Model 3: ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03
   - This model belongs to Tensoflow’s pretrained model zoo.
   - I converted the model to an Intermediate Representation with the following arguments:
 ```
 python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model ./frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/faster_rcnn_support.json
 ```
-  - The model’s precision was better than the second model.
+  - This model’s performance is the worst among three.
+  - This is not up to mark in terms of size and infrence time too.
+  - Due to it's size, model loading time and inference time are high. Precision is low. Not suitable for edge application.
+  
+## OpenVino Model
+
+Finally I tried with OpenVino pretrained model [person-detection-retail-0013](https://docs.openvinotoolkit.org/latest/_models_intel_person_detection_retail_0013_description_person_detection_retail_0013.html). This is based on the MobileNetV2-like backbone. This model performed well for detecting people in terms of precision, inference time and model size. 
+  - Model's size: 3.1 MB
+  - Model's inference time: 48 ms
+  
+OpenVino pretrained model **person-detection-retail-0013** is the best model for this Edge App.
