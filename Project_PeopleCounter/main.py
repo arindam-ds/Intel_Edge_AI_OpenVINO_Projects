@@ -128,9 +128,9 @@ def infer_on_stream(args, client):
         tmp_net = infer_network.exec_net(image)
         # Wait for the result
         if infer_network.wait(tmp_net) == 0:
-            det_time = time.time() - inf_start
             # Results of the output layer of the network
             result = infer_network.get_output()
+            det_time = time.time() - inf_start
             #frame, current_count = ssd_out(frame, result)
             current_count = 0
             for obj in result[0][0]:
