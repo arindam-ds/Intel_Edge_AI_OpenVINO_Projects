@@ -49,7 +49,10 @@ class Network:
         core = IECore()
         model_xml = args.model
         model_bin = os.path.splitext(model_xml)[0] + ".bin"
-        net = core.read_network(model=model_xml, weights=model_bin)
+        try:
+            net = core.read_network(model=model_xml, weights=model_bin)
+        except Exception as e:
+            raise ValueError("Could not Initialise the network. Have you enterred the correct model path?")
         
         ### TODO: Check for supported layers ###
         supported_layers = core.query_network(network=net, device_name=args.device)
