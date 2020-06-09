@@ -62,7 +62,8 @@ In investigating potential people counter models, I tried each of the following 
   ```
   python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
   ```
-  - The model performed well but sometimes missing the presence of people in the frame.
+  - The model performed moderately but sometimes missing the presence of people in the frame.
+  - The model's inference time is high. It also misses to predict person in some frames. Hence average duration of stay is wrongly caluclated. We also found that sometimes it's detection for consecutive frames is less than the threshold (10 frames). Hence the model's prediction is not that much trustworthy.
   - I tried to improve the model for the app by converting into IR form. And then by changing the probability threshold argument.
   
 - **Model 2: ssd_mobilenet_v2_coco_2018_03_29**
@@ -72,7 +73,8 @@ In investigating potential people counter models, I tried each of the following 
   python3 /opt/intel/openvino/deployment_tools/model_optimizer/mo.py --input_model frozen_inference_graph.pb --tensorflow_object_detection_api_pipeline_config pipeline.config --reverse_input_channels --tensorflow_use_custom_operations_config /opt/intel/openvino/deployment_tools/model_optimizer/extensions/front/tf/ssd_v2_support.json
   ```
 
-  - The model is better than the first one in terms of size and inference time. It misses the presence of people in the frame for lesser number of times.
+  - The model is better than the first one in terms of size and inference time. Also with less number of false negatives.
+  - Sometimes it also misses the presence of people in the frame. At that time, it's detection for consecutive frames is less than the threshold (10 frames). 
   - I tried to improve the model for the app by converting into IR form. And then by changing the probability threshold argument.
 
 - **Model 3: ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03**
@@ -84,6 +86,7 @@ In investigating potential people counter models, I tried each of the following 
   - This model’s performance is the worst among three.
   - This is not up to mark in terms of size and infrence time too.
   - Due to it's size, model loading time and inference time are high. Precision is low. Not suitable for edge application.
+  - We may still try with different hardwares and check if this model performs better in GPU, VPU, FPGA or their combinations.
   
 ## OpenVino Model
 
