@@ -75,7 +75,7 @@ def infer_on_stream(args, client):
     """
     # Flag for the input image
     IMAGE_FLAG = False
-
+    frame_threshold = 10 #number of consecutive frames required for trusted prediction
     last_ppl_count = 0
     total_ppl_count = 0
 
@@ -111,6 +111,9 @@ def infer_on_stream(args, client):
     prob_threshold = args.prob_threshold
     initial_w = cap.get(3)
     initial_h = cap.get(4)
+    current_frame_detected = False
+    last_frame_detected = False
+    number_of_same_result_frames = 0
     while cap.isOpened():
         flag, frame = cap.read()
         if not flag:
@@ -131,7 +134,6 @@ def infer_on_stream(args, client):
             # Results of the output layer of the network
             result = infer_network.get_output()
             det_time = time.time() - inf_start
-            #frame, current_count = ssd_out(frame, result)
             current_count = 0
             for obj in result[0][0]:
                 # Draw bounding box for object when it's probability is more than
@@ -143,7 +145,12 @@ def infer_on_stream(args, client):
                     ymax = int(obj[6] * initial_h)
                     cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 55, 255), 1)
                     current_count = current_count + 1
-
+            
+            if current_count > 0:
+                current_frame_detected = True
+            else:
+                current_frame_detected = False
+                
     
             inf_time_message = "Inference time: {:.3f}ms".format(det_time * 1000)
             cv2.putText(frame, inf_time_message, (15, 15), cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
@@ -153,13 +160,20 @@ def infer_on_stream(args, client):
                 start_time = time.time()
                 total_ppl_count = total_ppl_count + current_count - last_ppl_count
                 client.publish("person", json.dumps({"total": total_ppl_count}))
-
-            # Person duration in the video 
-            if current_count < last_ppl_count:
-                duration = int(time.time() - start_time)
-                # Publish messages to the MQTT server
-                client.publish("person/duration", json.dumps({"duration": duration}))
-
+            
+            if current_frame_detected == last_frame_detected:
+                number_of_same_result_frames+=1
+            else:            
+                # Person duration in the video 
+                if current_count < last_ppl_count:
+                    duration = int(time.time() - start_time)
+                    # Publish messages to the MQTT server if prediction is trustworthy
+                    if number_of_same_result_frames >= frame_threshold:
+                        client.publish("person/duration", json.dumps({"duration": duration}))
+                    else: #Not trustworthy prediction
+                        client.publish("person/duration", json.dumps({"duration": -999}))
+                number_of_same_result_frames = 0
+                
             client.publish("person", json.dumps({"count": current_count}))
             last_ppl_count = current_count
 
@@ -172,6 +186,8 @@ def infer_on_stream(args, client):
 
         if IMAGE_FLAG:
             cv2.imwrite('output_image.jpg', frame)
+            
+        last_frame_detected = current_frame_detected
     cap.release()
     cv2.destroyAllWindows()
     client.disconnect()
