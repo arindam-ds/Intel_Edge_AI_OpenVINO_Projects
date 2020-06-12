@@ -29,6 +29,7 @@ import cv2
 import paho.mqtt.client as mqtt
 from argparse import ArgumentParser
 from inference import Network
+import logging
 
 # MQTT server environment variables
 HOSTNAME = socket.gethostname()
@@ -76,6 +77,10 @@ def infer_on_stream(args, client):
     # Flag for the input image
     IMAGE_FLAG = False
     frame_threshold = 10 #number of consecutive frames required for trusted prediction
+    frame_buffer = 0
+    frame_number = 0
+    frame_count_start = 0
+    frame_count_end = 0
     last_ppl_count = 0
     total_ppl_count = 0
 
@@ -116,6 +121,8 @@ def infer_on_stream(args, client):
     number_of_same_result_frames = 0
     while cap.isOpened():
         flag, frame = cap.read()
+        frame_number+=1
+        logging.info("frame_number: {0}".format(frame_number))
         if not flag:
             break
         key_pressed = cv2.waitKey(60)
@@ -146,33 +153,53 @@ def infer_on_stream(args, client):
                     cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (0, 55, 255), 1)
                     current_count = current_count + 1
             
-            if current_count > 0:
+            if current_count > last_ppl_count or current_count > 0:
                 current_frame_detected = True
             else:
                 current_frame_detected = False
                 
     
-            inf_time_message = "Inference time: {:.3f}ms".format(det_time * 1000)
+            inf_time_message = "Inference time: {0:.3f}ms, frame number: {1}".format(det_time * 1000, frame_number)
             cv2.putText(frame, inf_time_message, (15, 15), cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
 
             # If new person enters the video
-            if current_count > last_ppl_count:
-                start_time = time.time()
-                total_ppl_count = total_ppl_count + current_count - last_ppl_count
-                client.publish("person", json.dumps({"total": total_ppl_count}))
+            logging.info("last_frame_detected: {0}".format(last_frame_detected))
+            logging.info("current_frame_detected: {0}".format(current_frame_detected))
+            logging.info("============================================================")
             
-            if current_frame_detected == last_frame_detected:
-                number_of_same_result_frames+=1
-            else:            
-                # Person duration in the video 
-                if current_count < last_ppl_count:
-                    duration = int(time.time() - start_time)
-                    # Publish messages to the MQTT server if prediction is trustworthy
-                    if number_of_same_result_frames >= frame_threshold:
-                        client.publish("person/duration", json.dumps({"duration": duration}))
-                    else: #Not trustworthy prediction
-                        client.publish("person/duration", json.dumps({"duration": -999}))
-                number_of_same_result_frames = 0
+            if last_frame_detected == False and current_frame_detected == True:
+                if frame_buffer == 0:
+                    frame_count_start = frame_number
+                    total_ppl_count = total_ppl_count + current_count - last_ppl_count
+                else:
+                    frame_buffer = 0
+            
+            elif last_frame_detected == True and current_frame_detected == False:
+                frame_buffer+=1
+            
+            elif last_frame_detected == False and current_frame_detected == False:
+                if frame_buffer > 0:
+                    frame_buffer+=1
+                    
+                if frame_buffer==frame_threshold:
+                    frame_count_end = frame_number   
+                    fps = cap.get(cv2.CAP_PROP_FPS)
+                    total_frame = frame_count_end - frame_buffer - frame_count_start + 1
+                    duration = total_frame/ fps
+                    logging.info("frame_buffer: {0}".format(frame_buffer))
+                    logging.info("frame_count_start: {0}".format(frame_count_start))
+                    logging.info("frame_count_end: {0}".format(frame_count_end))
+                    logging.info("total_frame: {0}".format(total_frame))
+                    logging.info("duration: {0}".format(duration))
+                    logging.info("total_ppl_count: {0}".format(total_ppl_count))
+                    
+                    client.publish("person/duration", json.dumps({"duration": duration}))
+                    client.publish("person", json.dumps({"total": total_ppl_count}))
+                
+                    frame_buffer = frame_count_end = frame_count_start = 0
+            else:
+                if frame_buffer > 0:
+                    frame_buffer+=1
                 
             client.publish("person", json.dumps({"count": current_count}))
             last_ppl_count = current_count
@@ -195,11 +222,13 @@ def infer_on_stream(args, client):
 
 def main():
     # Grab command line args
+    logging.basicConfig(filename='app.log', format='%(asctime)s - %(message)s', level=logging.INFO)
     args = build_argparser().parse_args()
     # Connect to the MQTT server
     client = connect_mqtt()   
     # Perform inference on the input stream
     infer_on_stream(args, client)
+    logging.close()
     
 if __name__ == '__main__':
     main()
