@@ -159,7 +159,7 @@ def infer_on_stream(args, client):
                 current_frame_detected = False
                 
     
-            inf_time_message = "Inference time: {0:.3f}ms, frame number: {1}".format(det_time * 1000, frame_number)
+            inf_time_message = "Inference time: {0:.3f}ms, Total Count: {1}".format(det_time * 1000, total_ppl_count)
             cv2.putText(frame, inf_time_message, (15, 15), cv2.FONT_HERSHEY_COMPLEX, 0.5, (200, 10, 10), 1)
 
             # If new person enters the video
@@ -185,7 +185,7 @@ def infer_on_stream(args, client):
                     frame_count_end = frame_number   
                     fps = cap.get(cv2.CAP_PROP_FPS)
                     total_frame = frame_count_end - frame_buffer - frame_count_start + 1
-                    duration = total_frame/ fps
+                    duration = round(total_frame/ fps)
                     logging.info("frame_buffer: {0}".format(frame_buffer))
                     logging.info("frame_count_start: {0}".format(frame_count_start))
                     logging.info("frame_count_end: {0}".format(frame_count_end))
