@@ -63,7 +63,7 @@ class Network:
             print("Following layers are not supported by "
                           "the core for specified device {}:\n {}".
                           format(self.core.device,
-                                 ', '.join(not_supported_layers)))
+                                 ', '.join(unsupported_layers)))
             print("Please try to specify cpu extensions library path"
                           " in command line parameters using -l "
                           "or --cpu_extension command line argument")
