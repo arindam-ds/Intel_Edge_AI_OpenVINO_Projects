@@ -8,7 +8,7 @@ import numpy as np
 import logging as log
 from openvino.inference_engine import IECore 
 
-class Model_Head_Pose_Estimation:
+class Head_Pose_Estimation:
     '''
     Class for the Face Detection Model.
     '''
