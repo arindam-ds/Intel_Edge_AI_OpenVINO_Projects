@@ -47,7 +47,7 @@ def build_argparser():
                              "fld for Facial Landmark Detection Model, ge for Gaze Estimation Model.")
     return parser
 
-def main()
+def main():
     logging.basicConfig(filename='app.log', format='%(asctime)s - %(message)s', level=logging.INFO)
     args = build_argparser().parse_args()
     input_file = args.input

@@ -39,7 +39,7 @@ class Face_Detection:
         try:
             self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
         except Exception as e:
-            raise ValueError("Could not Initialise the network. Please check the model path.")
+            raise ValueError("Could not Initialise the network. Please check the model path. {}".format(e))
         
         ### TODO: Check for supported layers ###
         checked = self.check_model()
@@ -91,20 +91,20 @@ class Face_Detection:
         #raise NotImplementedError
 
     def preprocess_input(self, image):
-    '''
-    Before feeding the data into the model for inference,
-    you might have to preprocess it. This function is where you can do that.
-    '''
+        '''
+        Before feeding the data into the model for inference,
+        you might have to preprocess it. This function is where you can do that.
+        '''
         processed_image = cv2.resize(image, (self.input_shape[3], self.input_shape[2]))
         processed_image = np.transpose(np.expand_dims(processed_image, axis=0), (0, 3, 1, 2))
         return processed_image
         #raise NotImplementedError
 
     def preprocess_output(self, outputs):
-    '''
-    Before feeding the output of this model to the next model,
-    you might have to preprocess the output. This function is where you can do that.
-    '''
+        '''
+        Before feeding the output of this model to the next model,
+        you might have to preprocess the output. This function is where you can do that.
+        '''
         coordinates = []
         boxes = outputs[self.output_blob][0][0]
         for box in boxes:

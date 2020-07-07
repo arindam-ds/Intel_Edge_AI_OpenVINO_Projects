@@ -2,6 +2,10 @@
 This is a sample class for a model. You may choose to use it as-is or make any changes to it.
 This has been provided just to give you an idea of how to structure your model class.
 '''
+import os  
+import cv2
+import numpy as np
+from openvino.inference_engine import IECore 
 
 class Gaze_Estimation:
     '''
@@ -78,10 +82,10 @@ class Gaze_Estimation:
         #raise NotImplementedError
 
     def preprocess_input(self, left_eye_image, right_eye_image):
-    '''
-    Before feeding the data into the model for inference,
-    you might have to preprocess it. This function is where you can do that.
-    '''
+        '''
+        Before feeding the data into the model for inference,
+        you might have to preprocess it. This function is where you can do that.
+        '''
         left_eye_image = cv2.resize(left_eye_image, (self.input_shape[3], self.input_shape[2]))
         right_eye_image = cv2.resize(right_eye_image, (self.input_shape[3], self.input_shape[2]))
         
@@ -91,10 +95,10 @@ class Gaze_Estimation:
         #raise NotImplementedError
 
     def preprocess_output(self, outputs, head_pose_estimation_val):
-    '''
-    Before feeding the output of this model to the next model,
-    you might have to preprocess the output. This function is where you can do that.
-    '''
+        '''
+        Before feeding the output of this model to the next model,
+        you might have to preprocess the output. This function is where you can do that.
+        '''
         roll_value = head_pose_estimation_output[2]
         outputs = outputs[self.output_blob].tolist()[0]
         

@@ -2,6 +2,10 @@
 This is a sample class for a model. You may choose to use it as-is or make any changes to it.
 This has been provided just to give you an idea of how to structure your model class.
 '''
+import os  
+import cv2
+import numpy as np
+from openvino.inference_engine import IECore 
 
 class Facial_Landmarks_Detection:
     '''
@@ -100,20 +104,20 @@ class Facial_Landmarks_Detection:
         #raise NotImplementedError
 
     def preprocess_input(self, image):
-    '''
-    Before feeding the data into the model for inference,
-    you might have to preprocess it. This function is where you can do that.
-    '''
+        '''
+        Before feeding the data into the model for inference,
+        you might have to preprocess it. This function is where you can do that.
+        '''
         processed_image = cv2.resize(cv2.cvtColor(image, cv2.COLOR_BGR2RGB), (self.input_shape[3], self.input_shape[2]))
         processed_image = np.transpose(np.expand_dims(processed_image, axis=0), (0, 3, 1, 2))
         return processed_image
         #raise NotImplementedError
 
     def preprocess_output(self, outputs):
-    '''
-    Before feeding the output of this model to the next model,
-    you might have to preprocess the output. This function is where you can do that.
-    '''
+        '''
+        Before feeding the output of this model to the next model,
+        you might have to preprocess the output. This function is where you can do that.
+        '''
         outputs = outputs[self.output_name][0]
         x_coordinate_left_eye = outputs[0].tolist()[0][0]
         y_coordinate_left_eye = outputs[1].tolist()[0][0]
