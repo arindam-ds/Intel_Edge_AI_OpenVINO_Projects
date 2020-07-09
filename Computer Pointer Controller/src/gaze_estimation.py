@@ -50,14 +50,23 @@ class Gaze_Estimation:
         
         self.exec_network = self.core.load_network(self.net, self.device)
         
-        self.input_blob = next(iter(self.net.inputs))
-        self.output_blob = next(iter(self.net.outputs))
+        '''
+        The document of gaze_estimation_adas_0002 model says, there are 3 blobs in inputs.
+        We need to get the left_eye_image size or right_eye_image size since both are of 
+        same size. But, by next(iter)) we do not get the exact blob. By default "head_pose_angles"
+        blob is coming. Hence we need to hard code the blob name here.
+        '''
+        #self.input_blob = next(iter(self.net.inputs))
+        #self.output_blob = next(iter(self.net.outputs))
+        self.input_blob = 'left_eye_image'
+        self.output_blob = 'gaze_vector'
         
-        self.logger.info("input_blob: {}".format(str(self.input_blob)))
-        self.logger.info("output_blob: ()".format(str(self.output_blob)))
+        self.input_shape = self.net.inputs[self.input_blob].shape
+        self.output_shape = self.net.outputs[self.output_blob].shape         
         
-        self.input_shape = self.net.inputs['left_eye_image'].shape
-        self.output_shape = self.net.outputs['gaze_vector'].shape        
+        #Similar way, we can hardcode like below:
+        #self.input_shape = self.net.inputs['left_eye_image'].shape
+        #self.output_shape = self.net.outputs['gaze_vector'].shape        
         return
         #raise NotImplementedError
 
