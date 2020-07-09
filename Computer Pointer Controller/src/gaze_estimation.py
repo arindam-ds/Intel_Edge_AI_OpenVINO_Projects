@@ -5,13 +5,14 @@ This has been provided just to give you an idea of how to structure your model c
 import os  
 import cv2
 import numpy as np
-from openvino.inference_engine import IECore 
+import math
+from openvino.inference_engine import IENetwork, IECore 
 
 class Gaze_Estimation:
     '''
     Class for the Face Detection Model.
     '''
-    def __init__(self, model_name, device='CPU', extensions=None):
+    def __init__(self, model_name, logger, device='CPU', extensions=None):
         '''
         TODO: Use this to set your instance variables.
         '''
@@ -26,6 +27,7 @@ class Gaze_Estimation:
         self.input_shape = None
         self.output_blob = None
         self.output_shape = None
+        self.logger = logger
         #raise NotImplementedError
 
     def load_model(self):
@@ -36,21 +38,26 @@ class Gaze_Estimation:
         '''
         self.core = IECore()
         try:
-            self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
+            #self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
+            self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
         except Exception as e:
-            raise ValueError("Could not Initialise the network. Please check the model path.")
+            raise ValueError("Could not Initialise the network. {}".format(e))
         
         ### TODO: Check for supported layers ###
         checked = self.check_model()
         if not checked:
             sys.exit(1)
         
-        self.exec_network = self.core.load_network(self.net, args.device)
+        self.exec_network = self.core.load_network(self.net, self.device)
         
         self.input_blob = next(iter(self.net.inputs))
         self.output_blob = next(iter(self.net.outputs))
-        self.input_shape = self.net.inputs[self.input_blob].shape
-        self.output_shape = self.net.outputs[self.output_blob].shape        
+        
+        self.logger.info("input_blob: {}".format(str(self.input_blob)))
+        self.logger.info("output_blob: ()".format(str(self.output_blob)))
+        
+        self.input_shape = self.net.inputs['left_eye_image'].shape
+        self.output_shape = self.net.outputs['gaze_vector'].shape        
         return
         #raise NotImplementedError
 
@@ -60,7 +67,7 @@ class Gaze_Estimation:
         This method is meant for running predictions on the input image.
         '''
         left_eye_processed, right_eye_processed = self.preprocess_input(left_eye_image,right_eye_image)
-        outputs = self.exec_net.infer({'left_eye_image':left_eye_processed, 'right_eye_image':right_eye_processed, 'head_pose_angles':head_pose_estimation_val})
+        outputs = self.exec_network.infer({'left_eye_image':left_eye_processed, 'right_eye_image':right_eye_processed, 'head_pose_angles':head_pose_estimation_val})    
         mouse_coordinates, gaze_val = self.preprocess_output(outputs, head_pose_estimation_val)
         return mouse_coordinates, gaze_val
         #raise NotImplementedError
@@ -86,11 +93,17 @@ class Gaze_Estimation:
         Before feeding the data into the model for inference,
         you might have to preprocess it. This function is where you can do that.
         '''
-        left_eye_image = cv2.resize(left_eye_image, (self.input_shape[3], self.input_shape[2]))
-        right_eye_image = cv2.resize(right_eye_image, (self.input_shape[3], self.input_shape[2]))
-        
-        left_eye_processed = np.transpose(np.expand_dims(left_eye_image, axis=0), (0, 3, 1, 2))
-        right_eye_processed = np.transpose(np.expand_dims(right_eye_image, axis=0), (0, 3, 1, 2))
+        try:        
+            left_eye_image = cv2.resize(left_eye_image, (self.input_shape[3], self.input_shape[2]))
+            right_eye_image = cv2.resize(right_eye_image, (self.input_shape[3], self.input_shape[2]))
+            
+            left_eye_processed = np.transpose(np.expand_dims(left_eye_image, axis=0), (0, 3, 1, 2))
+            right_eye_processed = np.transpose(np.expand_dims(right_eye_image, axis=0), (0, 3, 1, 2))
+                    #self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
+            self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
+        except Exception as e:
+            raise ValueError("Error: {0}, Input shape: {1}".format(e, self.input_blob))
+            
         return left_eye_processed, right_eye_processed
         #raise NotImplementedError
 
@@ -99,7 +112,7 @@ class Gaze_Estimation:
         Before feeding the output of this model to the next model,
         you might have to preprocess the output. This function is where you can do that.
         '''
-        roll_value = head_pose_estimation_output[2]
+        roll_value = head_pose_estimation_val[2]
         outputs = outputs[self.output_blob].tolist()[0]
         
         cos_val = math.cos(roll_value * math.pi / 180)

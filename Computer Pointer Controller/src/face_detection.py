@@ -5,7 +5,7 @@ This has been provided just to give you an idea of how to structure your model c
 import os  
 import cv2
 import numpy as np
-from openvino.inference_engine import IECore 
+from openvino.inference_engine import IENetwork, IECore 
 
 class Face_Detection:
     '''
@@ -36,17 +36,22 @@ class Face_Detection:
         If your model requires any Plugins, this is where you can load them.
         '''
         self.core = IECore()
+        ######
+        if self.extensions and 'CPU' in self.device:
+            self.core.add_extension(self.extensions, 'CPU')
+        ######
         try:
-            self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
+            ######self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
+            self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
         except Exception as e:
-            raise ValueError("Could not Initialise the network. Please check the model path. {}".format(e))
+            raise ValueError("Could not Initialise the network. {}".format(e))
         
         ### TODO: Check for supported layers ###
         checked = self.check_model()
         if not checked:
             sys.exit(1)
         
-        self.exec_network = self.core.load_network(self.net, args.device)
+        self.exec_network = self.core.load_network(self.net, self.device)
         
         self.input_blob = next(iter(self.net.inputs))
         self.output_blob = next(iter(self.net.outputs))
@@ -61,8 +66,8 @@ class Face_Detection:
         This method is meant for running predictions on the input image.
         '''
         processed_image = self.preprocess_input(image)
-        results = self.exec_net.infer({self.input_name:processed_image})
-        coordinates = self.preprocess_output(results, self.prob_threshold)
+        results = self.exec_network.infer({self.input_blob:processed_image})
+        coordinates = self.preprocess_output(results)
         if (len(coordinates)==0):
             return 0, 0
             

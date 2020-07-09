@@ -5,7 +5,7 @@ This has been provided just to give you an idea of how to structure your model c
 import os  
 import cv2
 import numpy as np
-from openvino.inference_engine import IECore 
+from openvino.inference_engine import IENetwork, IECore 
 
 class Facial_Landmarks_Detection:
     '''
@@ -37,16 +37,17 @@ class Facial_Landmarks_Detection:
         '''
         self.core = IECore()
         try:
-            self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
+            #self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
+            self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
         except Exception as e:
-            raise ValueError("Could not Initialise the network. Please check the model path.")
+            raise ValueError("Could not Initialise the network. {}".format(e))
         
         ### TODO: Check for supported layers ###
         checked = self.check_model()
         if not checked:
             sys.exit(1)
         
-        self.exec_network = self.core.load_network(self.net, args.device)
+        self.exec_network = self.core.load_network(self.net, self.device)
         
         self.input_blob = next(iter(self.net.inputs))
         self.output_blob = next(iter(self.net.outputs))
@@ -61,7 +62,8 @@ class Facial_Landmarks_Detection:
         This method is meant for running predictions on the input image.
         '''
         processed_image = self.preprocess_input(image)
-        results = self.net.infer(inputs={self.input_blob : processed_image})
+        #results = self.net.infer(inputs={self.input_blob : processed_image})
+        results = self.exec_network.infer({self.input_blob:processed_image})
         outputs = self.preprocess_output(results)
         outputs = outputs * np.array(
             [image.shape[1], image.shape[0], image.shape[1], image.shape[0]]
@@ -118,7 +120,7 @@ class Facial_Landmarks_Detection:
         Before feeding the output of this model to the next model,
         you might have to preprocess the output. This function is where you can do that.
         '''
-        outputs = outputs[self.output_name][0]
+        outputs = outputs[self.output_blob][0]
         x_coordinate_left_eye = outputs[0].tolist()[0][0]
         y_coordinate_left_eye = outputs[1].tolist()[0][0]
         x_coordinate_right_eye = outputs[2].tolist()[0][0]

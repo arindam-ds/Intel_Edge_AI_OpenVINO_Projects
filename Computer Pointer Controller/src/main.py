@@ -56,7 +56,7 @@ def main():
     if input_file.lower()=="cam":
         feed = InputFeeder("cam")
     elif not os.path.isfile(input_file):
-            logger.error("Given input file is not found.")
+            logging.error("Given input file is not found.")
             exit(1)
     else:
         feed = InputFeeder("video", input_file)
@@ -64,7 +64,7 @@ def main():
     face_detection = Face_Detection(args.face_detection_model,args.device,args.cpu_extension,args.prob_threshold)
     head_pose_estimation = Head_Pose_Estimation(args.head_pose_estimation_model, args.device, args.cpu_extension)
     facial_landmarks_detection = Facial_Landmarks_Detection(args.facial_landmarks_detection_model, args.device, args.cpu_extension)
-    gaze_estimation = Gaze_Estimation(args.gaze_estimation_model, args.device, args.cpu_extension)
+    gaze_estimation = Gaze_Estimation(args.gaze_estimation_model, logging, args.device, args.cpu_extension)
     mouse_controller = MouseController("medium", "fast")
     
     face_detection.load_model()
@@ -88,7 +88,7 @@ def main():
         #inference from Face_Detection model.
         detected_part, coordinate = face_detection.predict(frame.copy())
         if type(detected_part) == int:
-            logger.info("No face detected in frame no. {0}.".format(frame_count))
+            logging.info("No face detected in frame no. {0}.".format(frame_count))
             if key==27:
                 break
             continue
@@ -113,7 +113,7 @@ def main():
         if key==27:
             break
     
-    logger.info("video finished.")
+    logging.info("video finished.")
     cv2.destroyAllWindows()   
     feed.close()    
     logging.close()
