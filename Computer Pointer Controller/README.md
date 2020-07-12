@@ -5,7 +5,9 @@ In this project we have developed an Intel OpenVINO-based Edge-AI application th
 ![Pipeline flow](https://github.com/arin1405/Intel_Edge_AI_OpenVINO_Projects/blob/master/Computer%20Pointer%20Controller/pipeline.png "Pipeline flow")
 
 ## Project Set Up and Installation
-*TODO:* Explain the setup procedures to run your project. For instance, this can include your project directory structure, the models you need to download and where to place them etc. Also include details about how to install the dependencies your project requires.
+For successfull development and execution of the project, Intel OpenVINO needs to be installed. The installation document can be found [here](https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_windows.html). I have used OpenVINO 2020.1.033 version for this project.
+
+
 
 ## Demo
 *TODO:* Explain how to run a basic demo of your model.
