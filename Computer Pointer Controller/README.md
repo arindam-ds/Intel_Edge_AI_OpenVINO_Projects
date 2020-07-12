@@ -110,21 +110,21 @@ The results are given below:
 
 **FP32:**
 
-The total model loading time is : 2.68 ms
-The total inference time is : 27.4 ms
-The total FPS is : 2 fps
+- The total model loading time is : 2.68 ms
+- The total inference time is : 27.4 ms
+- The total FPS is : 2 fps
 
 **FP16:**
 
-The total model loading time is : 2.66 ms
-The total inference time is : 1.5 ms
-The total FPS is : 3.3 fps
+- The total model loading time is : 2.66 ms
+- The total inference time is : 1.5 ms
+- The total FPS is : 3.3 fps
 
 **INT8:**
 
-The total model loading time is : 4.49 ms
-The total inference time is : 25.4 ms
-The total FPS is : 1.97 fps
+- The total model loading time is : 4.49 ms
+- The total inference time is : 25.4 ms
+- The total FPS is : 1.97 fps
 
 ## Results
 
