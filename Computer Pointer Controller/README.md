@@ -47,6 +47,10 @@ The folder structure of the project is shown below:
 
 ![folder tree](https://github.com/arin1405/Intel_Edge_AI_OpenVINO_Projects/blob/master/Computer%20Pointer%20Controller/images/tree.JPG "folder tree")
 
+The src directory stores all the scripts for this project. The structure of the src file is shown below:
+
+![src directory](https://github.com/arin1405/Intel_Edge_AI_OpenVINO_Projects/blob/master/Computer%20Pointer%20Controller/images/src_tree.JPG "src tree")
+
 ## Demo
 *TODO:* Explain how to run a basic demo of your model.
 
