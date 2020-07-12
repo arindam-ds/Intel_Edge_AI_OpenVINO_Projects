@@ -57,7 +57,9 @@ To run the program, one needs to follow below mentioned steps:
 
 **Step 1:**
 Open a new command prompt window and change the directory to `src`.
+```
 cd <project-repo-path>/src
+```
 
 **Step 2:**
 Execute the main.py:
