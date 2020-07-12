@@ -52,10 +52,53 @@ The src directory stores all the scripts for this project. The structure of the 
 ![src directory](https://github.com/arin1405/Intel_Edge_AI_OpenVINO_Projects/blob/master/Computer%20Pointer%20Controller/images/src_tree.JPG "src tree")
 
 ## Demo
-*TODO:* Explain how to run a basic demo of your model.
+
+To run the program, one needs to follow below mentioned steps:
+
+**Step 1:**
+Open a new command prompt window and change the directory to `src`.
+cd <project-repo-path>/src
+
+**Step 2:**
+Execute the main.py:
+```
+python main.py -fd "..\\intel\\face-detection-adas-binary-0001\\FP32-INT1\\face-detection-adas-binary-0001" -fld "..\\intel\\landmarks-regression-retail-0009\\FP32\\landmarks-regression-retail-0009" -hpe "..\\intel\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001" -ge "..\\intel\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002" -i ..\\bin\\demo.mp4
+```
 
 ## Documentation
-*TODO:* Include any documentation that users might need to better understand your project code. For instance, this is a good place to explain the command line arguments that your project supports.
+The usage and arguments of main.py are explained below:
+
+```
+usage: 
+	main.py [-h] -fd FACE_DETECTION_MODEL -hpe HEAD_POSE_ESTIMATION_MODEL
+        -fld FACIAL_LANDMARKS_DETECTION_MODEL -ge GAZE_ESTIMATION_MODEL
+        -i INPUT [-l CPU_EXTENSION] [-d DEVICE] [-pt PROB_THRESHOLD]]
+
+optional arguments:
+	-h, --help            show this help message and exit
+	-fd FACE_DETECTION_MODEL, --face_detection_model FACE_DETECTION_MODEL
+						Path to a face detection model xml file.
+	-hpe HEAD_POSE_ESTIMATION_MODEL, --head_pose_estimation_model HEAD_POSE_ESTIMATION_MODEL
+						Path to a head pose estimation model xml file.
+	-fld FACIAL_LANDMARKS_DETECTION_MODEL, --facial_landmarks_detection_model FACIAL_LANDMARKS_DETECTION_MODEL
+						Path to a facial landmarks detection model xml file.
+	-ge GAZE_ESTIMATION_MODEL, --gaze_estimation_model GAZE_ESTIMATION_MODEL
+						Path to a gaze estimation model xml file.
+	-i INPUT, --input INPUT
+						Path to image or video file or enter CAM for using
+						webcam.
+	-l CPU_EXTENSION, --cpu_extension CPU_EXTENSION
+						MKLDNN (CPU)-targeted custom layers.Absolute path to a
+						shared library with thekernels impl.
+	-d DEVICE, --device DEVICE
+						Specify the target device to infer on: CPU, GPU, FPGA
+						or MYRIAD is acceptable. Sample will look for a
+						suitable plugin for device specified (CPU by default)
+	-pt PROB_THRESHOLD, --prob_threshold PROB_THRESHOLD
+						Probability threshold for detections filtering(0.5 by
+						default)
+```
+
 
 ## Benchmarks
 *TODO:* Include the benchmark results of running your model on multiple hardwares and multiple model precisions. Your benchmarks can include: model loading time, input/output processing time, model inference time etc.
