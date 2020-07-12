@@ -5,9 +5,26 @@ In this project we have developed an Intel OpenVINO-based Edge-AI application th
 ![Pipeline flow](https://github.com/arin1405/Intel_Edge_AI_OpenVINO_Projects/blob/master/Computer%20Pointer%20Controller/pipeline.png "Pipeline flow")
 
 ## Project Set Up and Installation
-For successfull development and execution of the project, Intel OpenVINO needs to be installed. The installation document can be found [here](https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_windows.html). I have used OpenVINO 2020.1.033 version for this project.
+For successfull development and execution of the project, Intel [OpenVINO](https://software.intel.com/content/www/us/en/develop/tools/openvino-toolkit.html) needs to be installed. The installation document can be found [here](https://docs.openvinotoolkit.org/latest/_docs_install_guides_installing_openvino_windows.html). I have used OpenVINO 2020.1.033 version for this project.
 
+We need four pretrained models of Intel OpenVINO. These models can be downloaded by model downloader script `downloader.py`.
 
+**1. Face Detection Model**
+```
+python C:\\Program Files (x86)\\IntelSWTools\\openvino_2020.1.033\\deployment_tools\\tools\\model_downloader\\downloader.py --name "face-detection-adas-binary-0001"
+```
+**2. Facial Landmarks Detection Model**
+```
+python C:\\Program Files (x86)\\IntelSWTools\\openvino_2020.1.033\\deployment_tools\\tools\\model_downloader\\downloader.py --name "landmarks-regression-retail-0009"
+```
+**3. Head Pose Estimation Model**
+```
+python C:\\Program Files (x86)\\IntelSWTools\\openvino_2020.1.033\\deployment_tools\\tools\\model_downloader\\downloader.py --name "head-pose-estimation-adas-0001"
+```
+**4. Gaze Estimation Model**
+```
+python C:\\Program Files (x86)\\IntelSWTools\\openvino_2020.1.033\\deployment_tools\\tools\\model_downloader\\downloader.py --name "gaze-estimation-adas-0002"
+```
 
 ## Demo
 *TODO:* Explain how to run a basic demo of your model.
