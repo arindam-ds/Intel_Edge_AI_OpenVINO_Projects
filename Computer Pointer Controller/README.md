@@ -29,6 +29,17 @@ python C:\\Program Files (x86)\\IntelSWTools\\openvino_2020.1.033\\deployment_to
 python C:\\Program Files (x86)\\IntelSWTools\\openvino_2020.1.033\\deployment_tools\\tools\\model_downloader\\downloader.py --name "gaze-estimation-adas-0002"
 ```
 
+Below mentioned Python libraries are required for this project:
+```
+image==1.5.27
+ipdb==0.12.3
+ipython==7.10.2
+numpy==1.17.4
+Pillow==6.2.1
+requests==2.22.0
+virtualenv==16.7.9
+```
+
 ## Demo
 *TODO:* Explain how to run a basic demo of your model.
 
