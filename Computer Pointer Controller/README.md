@@ -103,16 +103,41 @@ optional arguments:
 
 
 ## Benchmarks
-*TODO:* Include the benchmark results of running your model on multiple hardwares and multiple model precisions. Your benchmarks can include: model loading time, input/output processing time, model inference time etc.
+I executed this application for different benchmarks. I used different model precisions on a machine having Intel Core i5 8350U CPU 1.7 GHz
+and 16 GB RAM.
+
+The results are given below:
+
+** FP32:
+
+The total model loading time is : 2.68 ms
+The total inference time is : 27.4 ms
+The total FPS is : 2 fps
+
+** FP16:
+
+The total model loading time is : 2.66 ms
+The total inference time is : 1.5 ms
+The total FPS is : 3.3 fps
+
+** INT8:
+
+The total model loading time is : 4.49 ms
+The total inference time is : 25.4 ms
+The total FPS is : 1.97 fps
 
 ## Results
-*TODO:* Discuss the benchmark results and explain why you are getting the results you are getting. For instance, explain why there is difference in inference time for FP32, FP16 and INT8 models.
+
+The results show that models with lower precision are having smaller inference time. 
+Lower precision models use less memory and they are less expensive computationally.
+Lower precision models loose performance.
 
 ## Stand Out Suggestions
-This is where you can provide information about the stand out suggestions that you have attempted.
 
-### Async Inference
-If you have used Async Inference in your code, benchmark the results and explain its effects on power and performance of your project.
+- Lower inference speed could be achieved by changing the precision level of the models. FP16 precision can provide better inference time without much changes in performance.
+- The application can process both video and live webcam feed.
+
 
 ### Edge Cases
-There will be certain situations that will break your inference flow. For instance, lighting changes or multiple people in the frame. Explain some of the edge cases you encountered in your project and how you solved them to make your project more robust.
+- If there is no face detected due to absence of any face in the frame or lighting change, the application does not infer anything and logs an event of not detecting any face with the corresponding frame number.
+- If multiple people are present in the frame the application considers the first detected face for inference.
