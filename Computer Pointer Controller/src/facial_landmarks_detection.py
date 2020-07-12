@@ -62,7 +62,6 @@ class Facial_Landmarks_Detection:
         This method is meant for running predictions on the input image.
         '''
         processed_image = self.preprocess_input(image)
-        #results = self.net.infer(inputs={self.input_blob : processed_image})
         results = self.exec_network.infer({self.input_blob:processed_image})
         outputs = self.preprocess_output(results)
         outputs = outputs * np.array(

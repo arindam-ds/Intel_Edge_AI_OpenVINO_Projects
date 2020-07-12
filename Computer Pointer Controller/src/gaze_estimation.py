@@ -38,16 +38,16 @@ class Gaze_Estimation:
         '''
         self.core = IECore()
         try:
-            #self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
             self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
+            self.logger.info("Model files are read successfully.")
         except Exception as e:
+            self.logger.error("Could not Initialise the network. {}".format(e))
             raise ValueError("Could not Initialise the network. {}".format(e))
         
         ### TODO: Check for supported layers ###
         checked = self.check_model()
         if not checked:
             sys.exit(1)
-        
         self.exec_network = self.core.load_network(self.net, self.device)
         
         '''
@@ -76,7 +76,12 @@ class Gaze_Estimation:
         This method is meant for running predictions on the input image.
         '''
         left_eye_processed, right_eye_processed = self.preprocess_input(left_eye_image,right_eye_image)
-        outputs = self.exec_network.infer({'left_eye_image':left_eye_processed, 'right_eye_image':right_eye_processed, 'head_pose_angles':head_pose_estimation_val})    
+        try:
+            outputs = self.exec_network.infer({'left_eye_image':left_eye_processed, 'right_eye_image':right_eye_processed, 'head_pose_angles':head_pose_estimation_val}) 
+        except Exception as e:
+            self.logger.error("{0}".format(e))
+            raise ValueError("Inference not done. {0}".format(e))
+            
         mouse_coordinates, gaze_val = self.preprocess_output(outputs, head_pose_estimation_val)
         return mouse_coordinates, gaze_val
         #raise NotImplementedError
@@ -85,11 +90,11 @@ class Gaze_Estimation:
         supported_layers = self.core.query_network(network=self.net, device_name=self.device)        
         unsupported_layers = [l for l in self.net.layers.keys() if l not in supported_layers]
         if len(unsupported_layers) != 0:
-            print("Following layers are not supported by "
-                          "the core for specified device {}:\n {}".
-                          format(self.core.device,
+            self.logger.error("Following layers are not supported by \
+                          the core for specified device {}:\n {}".
+                          format(self.core.device,\
                                  ', '.join(unsupported_layers)))
-            print("Please try to specify cpu extensions library path"
+            self.logger.error("Please try to specify cpu extensions library path"
                           " in command line parameters using -l "
                           "or --cpu_extension command line argument")
             return False
@@ -108,9 +113,9 @@ class Gaze_Estimation:
             
             left_eye_processed = np.transpose(np.expand_dims(left_eye_image, axis=0), (0, 3, 1, 2))
             right_eye_processed = np.transpose(np.expand_dims(right_eye_image, axis=0), (0, 3, 1, 2))
-                    #self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
-            self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
+            
         except Exception as e:
+            self.logger.error("Error: {0}, Input shape: {1}".format(e, self.input_blob))
             raise ValueError("Error: {0}, Input shape: {1}".format(e, self.input_blob))
             
         return left_eye_processed, right_eye_processed

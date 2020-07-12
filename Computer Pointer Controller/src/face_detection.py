@@ -11,7 +11,7 @@ class Face_Detection:
     '''
     Class for the Face Detection Model.
     '''
-    def __init__(self, model_name, device='CPU', extensions=None, prob_threshold=0.6):
+    def __init__(self, model_name, logger, device='CPU', extensions=None, prob_threshold=0.6):
         '''
         TODO: Use this to set your instance variables.
         '''
@@ -27,6 +27,7 @@ class Face_Detection:
         self.output_blob = None
         self.output_shape = None
         self.prob_threshold = prob_threshold
+        self.logger = logger
         #raise NotImplementedError
 
     def load_model(self):
@@ -36,14 +37,13 @@ class Face_Detection:
         If your model requires any Plugins, this is where you can load them.
         '''
         self.core = IECore()
-        ######
         if self.extensions and 'CPU' in self.device:
             self.core.add_extension(self.extensions, 'CPU')
-        ######
         try:
-            ######self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
             self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
+            self.logger.info("Model files are read successfully.")
         except Exception as e:
+            self.logger.error("Could not Initialise the network. {}".format(e))
             raise ValueError("Could not Initialise the network. {}".format(e))
         
         ### TODO: Check for supported layers ###
@@ -66,7 +66,12 @@ class Face_Detection:
         This method is meant for running predictions on the input image.
         '''
         processed_image = self.preprocess_input(image)
-        results = self.exec_network.infer({self.input_blob:processed_image})
+        try:
+            results = self.exec_network.infer({self.input_blob:processed_image})
+        except Exception as e:
+            self.logger.error("{0}".format(e))
+            raise ValueError("Inference not done. {0}".format(e))
+            
         coordinates = self.preprocess_output(results)
         if (len(coordinates)==0):
             return 0, 0
@@ -83,11 +88,11 @@ class Face_Detection:
         supported_layers = self.core.query_network(network=self.net, device_name=self.device)        
         unsupported_layers = [l for l in self.net.layers.keys() if l not in supported_layers]
         if len(unsupported_layers) != 0:
-            print("Following layers are not supported by "
-                          "the core for specified device {}:\n {}".
-                          format(self.core.device,
+            self.logger.error("Following layers are not supported by \
+                          the core for specified device {}:\n {}".
+                          format(self.core.device,\
                                  ', '.join(unsupported_layers)))
-            print("Please try to specify cpu extensions library path"
+            self.logger.error("Please try to specify cpu extensions library path"
                           " in command line parameters using -l "
                           "or --cpu_extension command line argument")
             return False

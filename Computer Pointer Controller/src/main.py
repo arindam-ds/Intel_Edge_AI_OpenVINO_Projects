@@ -9,6 +9,7 @@ from gaze_estimation import Gaze_Estimation
 from mouse_controller import MouseController
 from input_feeder import InputFeeder
 from argparse import ArgumentParser
+import time
 
 def build_argparser():
     """
@@ -60,63 +61,76 @@ def main():
             exit(1)
     else:
         feed = InputFeeder("video", input_file)
-
-    face_detection = Face_Detection(args.face_detection_model,args.device,args.cpu_extension,args.prob_threshold)
+    
+    logging.info("gaze_estimation_model Model: {0}".format(args.gaze_estimation_model))
+    start_model_load_time=time.time()
+    
+    face_detection = Face_Detection(args.face_detection_model, logging, args.device, args.cpu_extension, args.prob_threshold)
     head_pose_estimation = Head_Pose_Estimation(args.head_pose_estimation_model, args.device, args.cpu_extension)
     facial_landmarks_detection = Facial_Landmarks_Detection(args.facial_landmarks_detection_model, args.device, args.cpu_extension)
     gaze_estimation = Gaze_Estimation(args.gaze_estimation_model, logging, args.device, args.cpu_extension)
-    mouse_controller = MouseController("medium", "fast")
+    
     
     face_detection.load_model()
-    logging.info("Face Detection model loaded.")
     head_pose_estimation.load_model()
-    logging.info("Head Pose Estimation model loaded.")
     facial_landmarks_detection.load_model()
-    logging.info("Facial Landmarks Detection model loaded.")
     gaze_estimation.load_model()
+    total_model_load_time = time.time() - start_model_load_time
+    
+    mouse_controller = MouseController("medium", "fast")
+    logging.info("Face Detection model loaded.")
+    logging.info("Head Pose Estimation model loaded.")
+    logging.info("Facial Landmarks Detection model loaded.")
     logging.info("Gaze Estimation model loaded.")
     
     feed.load_data()
     frame_count = 0
+    start_inference_time=time.time()
     
     for frame in feed.next_batch():
-        frame_count+=1
-        if frame_count%5 == 0:
-            cv2.imshow('video',cv2.resize(frame,(500,500)))
-        key = cv2.waitKey(60)
-        
-        #inference from Face_Detection model.
-        detected_part, coordinate = face_detection.predict(frame.copy())
-        if type(detected_part) == int:
-            logging.info("No face detected in frame no. {0}.".format(frame_count))
+        try:
+            frame_count+=1
+            if frame_count%5 == 0:
+                cv2.imshow('video',cv2.resize(frame,(500,500)))
+            key = cv2.waitKey(60)
+            
+            #inference from Face_Detection model.
+            detected_part, coordinate = face_detection.predict(frame.copy())
+            if type(detected_part) == int:
+                logging.info("No face detected in frame no. {0}.".format(frame_count))
+                if key==27:
+                    break
+                continue
+            
+            #inference from Head_Pose_Estimation model.
+            hpe_result = head_pose_estimation.predict(detected_part.copy())
+            
+            #inference from Facial_Landmarks_Detection model.
+            left_eye, right_eye, eye_coordinates = facial_landmarks_detection.predict(detected_part.copy())
+            
+            #inference from Gaze_Estimation model.
+            mouse_coordinates, gaze_val = gaze_estimation.predict(left_eye, right_eye, hpe_result)
+            
+            #cv2.imshow("visualization",cv2.resize(frame,(500,500)))
+            
+            if frame_count%5 == 0:
+                mouse_controller.move(mouse_coordinates[0], mouse_coordinates[1])    
             if key==27:
                 break
-            continue
-        
-        #inference from Head_Pose_Estimation model.
-        hpe_result = head_pose_estimation.predict(detected_part.copy())
-        
-        #inference from Facial_Landmarks_Detection model.
-        left_eye, right_eye, eye_coordinates = facial_landmarks_detection.predict(detected_part.copy())
-        
-        #inference from Gaze_Estimation model.
-        mouse_coordinates, gaze_val = gaze_estimation.predict(left_eye, right_eye, hpe_result)
-        
-        '''
-        TODO:visualization_flags logic
-        check below line
-        '''
-        cv2.imshow("visualization",cv2.resize(frame,(500,500)))
-        
-        if frame_count%5 == 0:
-            mouse_controller.move(mouse_coordinates[0], mouse_coordinates[1])    
-        if key==27:
-            break
+        except Exception as e:
+                break
+    
+    total_time = time.time()-start_inference_time
+    total_inference_time = round(total_time, 1)
+    fps = frame_count/total_inference_time
+    logging.info("total_model_load_time: {}".format(total_model_load_time))
+    logging.info("total_inference_time: {}".format(total_inference_time))
+    logging.info("fps: {}".format(fps))
     
     logging.info("video finished.")
     cv2.destroyAllWindows()   
     feed.close()    
-    logging.close()
+    #logging.close()
 
 if __name__ == '__main__':
     main()

@@ -36,12 +36,9 @@ class Head_Pose_Estimation:
         If your model requires any Plugins, this is where you can load them.
         '''
         self.core = IECore()
-        ######
         if self.extensions and 'CPU' in self.device:
             self.core.add_extension(self.extensions, 'CPU')
-        ######
         try:
-            ######self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
             self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
         except Exception as e:
             raise ValueError("Could not Initialise the network. {}".format(e))
@@ -66,7 +63,6 @@ class Head_Pose_Estimation:
         This method is meant for running predictions on the input image.
         '''
         processed_image = self.preprocess_input(image)
-        #results = self.exec_network.infer(inputs={self.input_blob : processed_image})
         results = self.exec_network.infer({self.input_blob:processed_image})
         return self.preprocess_output(results)
         #raise NotImplementedError
