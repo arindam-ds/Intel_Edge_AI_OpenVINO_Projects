@@ -111,27 +111,27 @@ The results are given below:
 
 **FP32:**
 
-- The total model loading time is : 2.68 ms
-- The total inference time is : 27.4 ms
-- The total FPS is : 2 fps
+- The total model loading time is : 1.99 s
+- The total inference time is : 1.7 s
+- The total FPS is : 35.08 fps
 
 **FP16:**
 
-- The total model loading time is : 2.66 ms
-- The total inference time is : 1.5 ms
-- The total FPS is : 3.3 fps
+- The total model loading time is : 2.01 s
+- The total inference time is : 1.9 s
+- The total FPS is : 31.57 fps
 
 **INT8:**
 
-- The total model loading time is : 4.49 ms
-- The total inference time is : 25.4 ms
-- The total FPS is : 1.97 fps
+- The total model loading time is : 3.23 s
+- The total inference time is : 1.6 s
+- The total FPS is : 37.5 fps
 
 ## Results
 
-The results show that models with lower precision are having smaller inference time. 
+The results show that model with lower precision (INT8) is having smaller inference time. 
 Lower precision models use less memory and they are less expensive computationally.
-Lower precision models loose performance.
+Lower precision models loose some performance.
 
 ## Stand Out Suggestions
 
