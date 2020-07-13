@@ -42,7 +42,7 @@ def build_argparser():
                              "(0.5 by default)")
     parser.add_argument("-flags", "--visualization_flags", required=False, nargs='+',
                         default=[],
-                        help="Example: --flag fd hpe ge fld (Seperate each flag by space)"
+                        help="Example: -flag fd hpe ge fld (Seperate each flag by space)"
                              "for getting the visualization of different model outputs of each frame."
                              "fd for Face Detection Model, hpe for Head Pose Estimation Model,"
                              "fld for Facial Landmark Detection Model, ge for Gaze Estimation Model.")
@@ -90,8 +90,10 @@ def main():
     for frame in feed.next_batch():
         try:
             frame_count+=1
+            '''
             if frame_count%5 == 0:
                 cv2.imshow('video',cv2.resize(frame,(500,500)))
+            '''
             key = cv2.waitKey(60)
             
             #Inferences
@@ -128,17 +130,15 @@ def main():
                             (coordinate[2], coordinate[3]), (0, 255, 0), 3)
                             
                 if 'hpe' in visualization_flags:
-                    cv2.putText(vis_frame,
+                    vis_frame = cv2.putText(vis_frame,
                                 "yaw:{:.1f} | pitch:{:.1f} | roll:{:.1f}".format(hpe_result[0], hpe_result[1], hpe_result[2]),
-                                (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.35, (0, 0, 0), 1)
+                                (50, 50), cv2.FONT_HERSHEY_COMPLEX, 2, (0, 255, 0), 2, cv2.LINE_AA)
                             
                 if 'fld' in visualization_flags:
                     if not 'fd' in visualization_flags:
                         vis_frame = detected_part.copy()
-                    cv2.rectangle(vis_frame, (eye_coordinates[0][0], eye_coordinates[0][1]), (eye_coordinates[0][2], eye_coordinates[0][3]),
-                                  (255, 0, 255))
-                    cv2.rectangle(vis_frame, (eye_coordinates[1][0], eye_coordinates[1][1]), (eye_coordinates[1][2], eye_coordinates[1][3]),
-                                  (255, 0, 255))
+                    vis_frame = cv2.rectangle(vis_frame, (eye_coordinates[0][0], eye_coordinates[0][1]), (eye_coordinates[0][2], eye_coordinates[0][3]), (255, 0, 255))
+                    vis_frame = cv2.rectangle(vis_frame, (eye_coordinates[1][0], eye_coordinates[1][1]), (eye_coordinates[1][2], eye_coordinates[1][3]), (255, 0, 255))
                 
                 if 'ge' in visualization_flags:
                     if not 'fd' in visualization_flags:
