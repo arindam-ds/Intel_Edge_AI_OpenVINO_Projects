@@ -169,7 +169,7 @@ def main():
                 break
     
     
-    total_inference_time = round(total_time, 2)
+    total_inference_time = round(total_time, 1)
     fps = frame_count/total_inference_time
     logging.info("total_model_load_time: {}".format(total_model_load_time))
     logging.info("total_inference_time: {}".format(total_inference_time))
