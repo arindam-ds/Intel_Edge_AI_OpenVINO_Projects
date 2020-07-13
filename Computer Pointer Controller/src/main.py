@@ -85,7 +85,7 @@ def main():
     
     feed.load_data()
     frame_count = 0
-    start_inference_time=time.time()
+    total_time = 0
     
     for frame in feed.next_batch():
         try:
@@ -93,6 +93,9 @@ def main():
             if frame_count%5 == 0:
                 cv2.imshow('video',cv2.resize(frame,(500,500)))
             key = cv2.waitKey(60)
+            
+            #Inferences
+            start_inference_time = time.time()
             
             #inference from Face_Detection model.
             detected_part, coordinate = face_detection.predict(frame.copy())
@@ -110,6 +113,8 @@ def main():
             
             #inference from Gaze_Estimation model.
             mouse_coordinates, gaze_val = gaze_estimation.predict(left_eye, right_eye, hpe_result)
+            
+            total_time = total_time + time.time() - start_inference_time
             
             #Visualization flags - fd hpe fld ge
             if len(visualization_flags) != 0:
@@ -163,8 +168,8 @@ def main():
         except Exception as e:
                 break
     
-    total_time = time.time()-start_inference_time
-    total_inference_time = round(total_time, 1)
+    
+    total_inference_time = round(total_time, 2)
     fps = frame_count/total_inference_time
     logging.info("total_model_load_time: {}".format(total_model_load_time))
     logging.info("total_inference_time: {}".format(total_inference_time))
