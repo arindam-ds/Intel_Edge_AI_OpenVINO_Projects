@@ -65,7 +65,7 @@ cd <project-repo-path>/src
 **Step 2:**
 Execute the main.py:
 ```
-python main.py -fd "..\\intel\\face-detection-adas-binary-0001\\FP32-INT1\\face-detection-adas-binary-0001" -fld "..\\intel\\landmarks-regression-retail-0009\\FP32\\landmarks-regression-retail-0009" -hpe "..\\intel\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001" -ge "..\\intel\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002" -i ..\\bin\\demo.mp4
+python main.py -fd "..\\intel\\face-detection-adas-binary-0001\\FP32-INT1\\face-detection-adas-binary-0001" -fld "..\\intel\\landmarks-regression-retail-0009\\FP32\\landmarks-regression-retail-0009" -hpe "..\\intel\\head-pose-estimation-adas-0001\\FP32\\head-pose-estimation-adas-0001" -ge "..\\intel\\gaze-estimation-adas-0002\\FP32\\gaze-estimation-adas-0002" -i ..\\bin\\demo.mp4 -flags fd hpe fld ge
 ```
 
 ## Documentation
@@ -100,6 +100,12 @@ optional arguments:
 	-pt PROB_THRESHOLD, --prob_threshold PROB_THRESHOLD
 						Probability threshold for detections filtering(0.5 by
 						default)
+	-flags VISUALIZATION_FLAGS [VISUALIZATION_FLAGS ...], --visualization_flags VISUALIZATION_FLAGS [VISUALIZATION_FLAGS ...]
+                        Example: -flag fd hpe ge fld (Seperate each flag by
+                        space)for getting the visualization of different model
+                        outputs of each frame.fd for Face Detection Model, hpe
+                        for Head Pose Estimation Model,fld for Facial Landmark
+                        Detection Model, ge for Gaze Estimation Model.
 ```
 
 
