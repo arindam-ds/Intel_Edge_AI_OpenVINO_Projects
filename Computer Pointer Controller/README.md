@@ -38,6 +38,7 @@ numpy==1.17.4
 Pillow==6.2.1
 requests==2.22.0
 virtualenv==16.7.9
+pyautogui==0.9.50
 ```
 These need to be installed first:
 ```
