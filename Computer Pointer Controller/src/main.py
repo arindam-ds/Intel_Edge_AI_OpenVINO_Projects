@@ -66,8 +66,8 @@ def main():
     start_model_load_time=time.time()
     
     face_detection = Face_Detection(args.face_detection_model, logging, args.device, args.cpu_extension, args.prob_threshold)
-    head_pose_estimation = Head_Pose_Estimation(args.head_pose_estimation_model, args.device, args.cpu_extension)
-    facial_landmarks_detection = Facial_Landmarks_Detection(args.facial_landmarks_detection_model, args.device, args.cpu_extension)
+    head_pose_estimation = Head_Pose_Estimation(args.head_pose_estimation_model, logging, args.device, args.cpu_extension)
+    facial_landmarks_detection = Facial_Landmarks_Detection(args.facial_landmarks_detection_model, logging, args.device, args.cpu_extension)
     gaze_estimation = Gaze_Estimation(args.gaze_estimation_model, logging, args.device, args.cpu_extension)
     
     

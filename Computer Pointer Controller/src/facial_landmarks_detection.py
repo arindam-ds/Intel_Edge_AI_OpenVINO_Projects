@@ -6,55 +6,17 @@ import os
 import cv2
 import numpy as np
 from openvino.inference_engine import IENetwork, IECore 
+from base_model import Model
 
-class Facial_Landmarks_Detection:
+class Facial_Landmarks_Detection(Model):
     '''
     Class for the Face Detection Model.
     '''
-    def __init__(self, model_name, device='CPU', extensions=None):
+    def __init__(self, model_name, logger, device, extensions):
         '''
         TODO: Use this to set your instance variables.
         '''
-        self.model_weights = model_name+'.bin'
-        self.model_structure = model_name+'.xml'
-        self.device = device
-        self.extensions = extensions
-        self.core = None
-        self.net = None
-        self.exec_network = None
-        self.input_blob = None
-        self.input_shape = None
-        self.output_blob = None
-        self.output_shape = None
-        
-        #raise NotImplementedError
-
-    def load_model(self):
-        '''
-        TODO: You will need to complete this method.
-        This method is for loading the model to the device specified by the user.
-        If your model requires any Plugins, this is where you can load them.
-        '''
-        self.core = IECore()
-        try:
-            #self.net = self.core.read_network(model=self.model_structure, weights=self.model_weights)
-            self.net = IENetwork(model=self.model_structure, weights=self.model_weights)
-        except Exception as e:
-            raise ValueError("Could not Initialise the network. {}".format(e))
-        
-        ### TODO: Check for supported layers ###
-        checked = self.check_model()
-        if not checked:
-            sys.exit(1)
-        
-        self.exec_network = self.core.load_network(self.net, self.device)
-        
-        self.input_blob = next(iter(self.net.inputs))
-        self.output_blob = next(iter(self.net.outputs))
-        self.input_shape = self.net.inputs[self.input_blob].shape
-        self.output_shape = self.net.outputs[self.output_blob].shape        
-        return
-        #raise NotImplementedError
+        super().__init__(model_name, logger, device, extensions)
 
     def predict(self, image):
         '''
@@ -86,23 +48,6 @@ class Facial_Landmarks_Detection:
         right_eye = image[y_min_right_eye:y_max_right_eye, x_min_right_eye:x_max_right_eye]
 
         return left_eye, right_eye, eye_coordinates
-        #raise NotImplementedError
-
-    def check_model(self):
-        supported_layers = self.core.query_network(network=self.net, device_name=self.device)        
-        unsupported_layers = [l for l in self.net.layers.keys() if l not in supported_layers]
-        if len(unsupported_layers) != 0:
-            print("Following layers are not supported by "
-                          "the core for specified device {}:\n {}".
-                          format(self.core.device,
-                                 ', '.join(unsupported_layers)))
-            print("Please try to specify cpu extensions library path"
-                          " in command line parameters using -l "
-                          "or --cpu_extension command line argument")
-            return False
-        else:
-            return True
-        #raise NotImplementedError
 
     def preprocess_input(self, image):
         '''
