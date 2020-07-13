@@ -40,7 +40,7 @@ def build_argparser():
     parser.add_argument("-pt", "--prob_threshold", type=float, default=0.5,
                         help="Probability threshold for detections filtering"
                              "(0.5 by default)")
-    parser.add_argument("-flag", "--visualization_flag", required=False, nargs='+',
+    parser.add_argument("-flags", "--visualization_flags", required=False, nargs='+',
                         default=[],
                         help="Example: --flag fd hpe ge fld (Seperate each flag by space)"
                              "for getting the visualization of different model outputs of each frame."
@@ -52,7 +52,7 @@ def main():
     logging.basicConfig(filename='app.log', format='%(asctime)s - %(message)s', level=logging.INFO)
     args = build_argparser().parse_args()
     input_file = args.input
-    visualization_flags = args.visualization_flag
+    visualization_flags = args.visualization_flags
 
     if input_file.lower()=="cam":
         feed = InputFeeder("cam")
@@ -111,7 +111,50 @@ def main():
             #inference from Gaze_Estimation model.
             mouse_coordinates, gaze_val = gaze_estimation.predict(left_eye, right_eye, hpe_result)
             
-            #cv2.imshow("visualization",cv2.resize(frame,(500,500)))
+            #Visualization flags - fd hpe fld ge
+            if len(visualization_flags) != 0:
+                vis_frame = frame.copy()
+                
+                if 'fd' in visualization_flags:
+                    if len(visualization_flags) != 1:
+                        vis_frame = detected_part
+                    else:
+                        cv2.rectangle(vis_frame, (coordinate[0], coordinate[1]),
+                            (coordinate[2], coordinate[3]), (0, 255, 0), 3)
+                            
+                if 'hpe' in visualization_flags:
+                    cv2.putText(vis_frame,
+                                "yaw:{:.1f} | pitch:{:.1f} | roll:{:.1f}".format(hpe_result[0], hpe_result[1], hpe_result[2]),
+                                (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.35, (0, 0, 0), 1)
+                            
+                if 'fld' in visualization_flags:
+                    if not 'fd' in visualization_flags:
+                        vis_frame = detected_part.copy()
+                    cv2.rectangle(vis_frame, (eye_coordinates[0][0], eye_coordinates[0][1]), (eye_coordinates[0][2], eye_coordinates[0][3]),
+                                  (255, 0, 255))
+                    cv2.rectangle(vis_frame, (eye_coordinates[1][0], eye_coordinates[1][1]), (eye_coordinates[1][2], eye_coordinates[1][3]),
+                                  (255, 0, 255))
+                
+                if 'ge' in visualization_flags:
+                    if not 'fd' in visualization_flags:
+                        vis_frame = detected_part.copy()
+                        
+                    x, y, w = int(gaze_val[0] * 12), int(gaze_val[1] * 12), 160
+                    
+                    le = cv2.line(left_eye.copy(), (x - w, y - w), (x + w, y + w), (255, 0, 255), 2)
+                    cv2.line(le, (x - w, y + w), (x + w, y - w), (255, 0, 255), 2)
+                    
+                    re = cv2.line(right_eye.copy(), (x - w, y - w), (x + w, y + w), (255, 0, 255), 2)
+                    cv2.line(re, (x - w, y + w), (x + w, y - w), (255, 0, 255), 2)
+                    
+                    vis_frame[eye_coordinates[0][1]:eye_coordinates[0][3], eye_coordinates[0][0]:eye_coordinates[0][2]] = le
+                    vis_frame[eye_coordinates[1][1]:eye_coordinates[1][3], eye_coordinates[1][0]:eye_coordinates[1][2]] = re
+                                  
+            if len(visualization_flags) != 0:
+                vis_frame = np.hstack((cv2.resize(frame, (500, 500)), cv2.resize(vis_frame, (500, 500))))
+                cv2.imshow("Visualize frame", vis_frame)
+            else:
+                cv2.imshow("Visualize frame", cv2.resize(frame,(500,500)))            
             
             if frame_count%5 == 0:
                 mouse_controller.move(mouse_coordinates[0], mouse_coordinates[1])    
